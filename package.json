@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "cross-env NEXT_DISABLE_SWC_NATIVE=1 next build",
-    "build:hostinger": "cross-env NEXT_DISABLE_SWC_NATIVE=1 NODE_OPTIONS=--max-old-space-size=4096 next build",
+    "build": "cross-env NEXT_DISABLE_SWC_NATIVE=1 next build --webpack",
     "start": "next start",
     "lint": "eslint"
   },
