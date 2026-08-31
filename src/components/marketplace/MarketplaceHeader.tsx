@@ -47,16 +47,16 @@ const navLinks: NavLink[] = [
     label: "T&C Offers",
     href: "/offers/",
     dropdown: [
-      { label: "Offers for TENANT/BUYER", href: "/offers/tenant-buyer/" },
-      { label: "Offers for OWNER/SELLER", href: "/offers/owner-seller/" },
-      { label: "Offers for PRE-LAUNCH BUYER", href: "/offers/pre-launch-buyer/" },
+      { label: "Offers Tenant / Buyers", href: "/offers/tenant-buyer/" },
+      { label: "Offers Owner / Sellers", href: "/offers/owner-seller/" },
+      { label: "Offers Pre-Lunch Buyers", href: "/offers/pre-launch-buyer/" },
       { label: "LOAN Support", href: "/support/loan/" },
       { label: "LEGAL Support", href: "/support/legal/" },
     ],
   },
   { label: "Enquiry", href: "/contact/" },
   { label: "Invest-JV", href: "/invest-jv/" },
-  { label: "Brokers", href: "/brokers/" },
+  { label: "Broker Partners", href: "/brokers/" },
 ];
 
 export default function MarketplaceHeader() {

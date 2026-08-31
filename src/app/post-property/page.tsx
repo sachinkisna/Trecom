@@ -554,6 +554,36 @@ export default function PostPropertyPage() {
             </div>
             </>
             )}
+
+            {/* Post property through WhatsApp Section */}
+            <div className="mt-10 overflow-hidden rounded-3xl border border-emerald-200 bg-emerald-50/80 p-6 sm:p-8 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
+              <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#25D366] text-white shadow-md">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.332 5.001L2 22l5.14-1.336a9.93 9.93 0 0 0 4.869 1.28h.004c5.507 0 9.99-4.478 9.99-9.985 0-2.667-1.037-5.176-2.922-7.062A9.92 9.92 0 0 0 12.012 2zm0 18.252h-.003a8.25 8.25 0 0 1-4.204-1.152l-.302-.18-3.123.812.833-3.037-.197-.315a8.26 8.26 0 0 1-1.266-4.394c0-4.55 3.702-8.251 8.254-8.251 2.206 0 4.28.86 5.839 2.42a8.21 8.21 0 0 1 2.413 5.838c-.002 4.55-3.704 8.259-8.244 8.259z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">
+                    Post the property by Us Through WhatsApp
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Need assistance listing your property? Simply chat with our team on WhatsApp and we will post it for you.
+                  </p>
+                </div>
+              </div>
+              <a
+                href="https://wa.me/919844422668"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#25D366] px-6 py-3.5 text-sm font-bold text-white shadow-md transition hover:bg-[#20ba5a] hover:shadow-lg"
+              >
+                <span>Post via WhatsApp</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </a>
+            </div>
           </div>
         </section>
       </main>
