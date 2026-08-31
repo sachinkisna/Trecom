@@ -42,7 +42,18 @@ const navLinks: NavLink[] = [
     ],
   },
   { label: "Management", href: "/property-management/" },
-  { label: "T&C Offers", href: "/offers/" },
+  { label: "NRI", href: "/nri/" },
+  {
+    label: "T&C Offers",
+    href: "/offers/",
+    dropdown: [
+      { label: "Offers for TENANT/BUYER", href: "/offers/tenant-buyer/" },
+      { label: "Offers for OWNER/SELLER", href: "/offers/owner-seller/" },
+      { label: "Offers for PRE-LAUNCH BUYER", href: "/offers/pre-launch-buyer/" },
+      { label: "LOAN Support", href: "/support/loan/" },
+      { label: "LEGAL Support", href: "/support/legal/" },
+    ],
+  },
   { label: "Enquiry", href: "/contact/" },
   { label: "Invest-JV", href: "/invest-jv/" },
   { label: "Brokers", href: "/brokers/" },
@@ -61,12 +72,12 @@ export default function MarketplaceHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
-      <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:h-[80px] lg:px-8">
-        <Link href="/" className="flex min-w-0 items-center gap-3">
+      <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-2 px-3 sm:px-5 lg:h-[80px] lg:px-6 xl:px-8">
+        <Link href="/" className="flex min-w-0 items-center gap-2.5">
           <img
             src="/images/trecom.jpeg"
             alt="TRECOM"
-            className="h-10 w-auto shrink-0 object-contain lg:h-11"
+            className="h-9 w-auto shrink-0 object-contain lg:h-10 xl:h-11"
           />
           <div className="min-w-0">
             <p className="truncate text-base font-bold tracking-tight text-[#1e293b] lg:text-lg">
@@ -80,7 +91,7 @@ export default function MarketplaceHeader() {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-0.5 lg:flex xl:gap-1.5">
+        <nav className="hidden items-center gap-0.5 lg:flex xl:gap-1">
           {navLinks.map((link) => {
             if (link.dropdown) {
               return (
@@ -88,14 +99,14 @@ export default function MarketplaceHeader() {
                   <div className="flex items-center">
                     <Link
                       href={link.href}
-                      className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 text-xs font-semibold text-[#334155] transition hover:bg-slate-50 hover:text-[#FF052B] xl:px-3 xl:text-sm"
+                      className="inline-flex items-center gap-1 rounded-lg px-2 py-2 text-xs font-semibold text-[#334155] transition hover:bg-slate-50 hover:text-[#FF052B] xl:px-2.5 xl:text-sm"
                     >
                       <span>{link.label}</span>
                       <ChevronDown className="h-3.5 w-3.5 text-slate-400 transition-transform duration-200 group-hover:rotate-180 group-hover:text-[#FF052B]" />
                     </Link>
                   </div>
                   {/* Dropdown Menu */}
-                  <div className="absolute left-0 top-full hidden pt-1.5 group-hover:block z-50 min-w-[200px]">
+                  <div className="absolute left-0 top-full hidden pt-1.5 group-hover:block z-50 min-w-[220px]">
                     <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white p-1.5 shadow-xl ring-1 ring-slate-900/5">
                       {link.dropdown.map((subItem) => (
                         <Link
@@ -116,7 +127,7 @@ export default function MarketplaceHeader() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="rounded-lg px-2.5 py-2 text-xs font-semibold text-[#334155] transition hover:bg-slate-50 hover:text-[#FF052B] xl:px-3 xl:text-sm"
+                className="rounded-lg px-2 py-2 text-xs font-semibold text-[#334155] transition hover:bg-slate-50 hover:text-[#FF052B] xl:px-2.5 xl:text-sm"
               >
                 {link.label}
               </Link>
@@ -128,7 +139,7 @@ export default function MarketplaceHeader() {
         <div className="hidden items-center gap-2 md:flex">
           <Link
             href="/post-property/"
-            className="inline-flex items-center gap-2 rounded-lg bg-[#FF052B] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#e00426] xl:px-5 xl:py-2.5 xl:text-sm"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#FF052B] px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#e00426] xl:px-4 xl:py-2.5 xl:text-sm"
           >
             Post Property
             <span className="rounded-md bg-white px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#FF052B]">
