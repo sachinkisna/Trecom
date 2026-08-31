@@ -45,7 +45,7 @@ export default function ContactPage() {
             <div className="mt-10 space-y-4">
               {[
                 { icon: "✉", label: "Email", value: "support@trecom.ai" },
-                { icon: "☎", label: "Customer Support", value: "+91 98444 22668" },
+                { icon: "☎", label: "Customer Support", value: "+91 98444 42668" },
                 { icon: "⌖", label: "Location", value: "Bangalore, Karnataka" },
               ].map((item) => (
                 <div key={item.label} className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5">

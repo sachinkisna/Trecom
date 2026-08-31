@@ -36,7 +36,7 @@ const amenityOptions = [
   "Corner Plot",
 ];
 
-const WHATSAPP_NUMBER = "919844422668";
+const WHATSAPP_NUMBER = "919844442668";
 const whatsappLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
   "Hi TRECOM, I want to list my property but need help posting it. Please assist me with the details."
 )}`;
@@ -573,7 +573,7 @@ export default function PostPropertyPage() {
                 </div>
               </div>
               <a
-                href="https://wa.me/919844422668"
+                href="https://wa.me/919844442668"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#25D366] px-6 py-3.5 text-sm font-bold text-white shadow-md transition hover:bg-[#20ba5a] hover:shadow-lg"

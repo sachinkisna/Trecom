@@ -1,7 +1,7 @@
 export const CONTACT = {
-  phone: "+919844422668",
-  phoneDisplay: "+91 98444 22668",
-  whatsapp: "919844422668",
+  phone: "+919844442668",
+  phoneDisplay: "+91 98444 42668",
+  whatsapp: "919844442668",
   email: "care.trecom@gmail.com",
   address: "Bangalore, Karnataka, India",
   hours: "Mon – Sat, 9:00 AM – 7:00 PM",
