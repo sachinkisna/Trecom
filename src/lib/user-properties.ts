@@ -1,6 +1,7 @@
 import type { Property, PropertyCategory } from "./data";
 import type { EnrichedProperty } from "./property-meta";
 import type { MarketplaceProperty } from "@/data/properties";
+import { createPropertyApi } from "./api/properties";
 
 const STORAGE_KEY = "trecom_user_properties";
 
@@ -104,6 +105,29 @@ export function saveUserProperty(data: {
     } catch (e) {
       console.error("Failed to save user property to localStorage", e);
     }
+
+    // Sync to MongoDB backend API
+    createPropertyApi({
+      title: newProperty.title,
+      description: newProperty.description,
+      purpose: newProperty.category,
+      propertyType: newProperty.propertyType,
+      bhk: newProperty.bedrooms,
+      price: newProperty.priceLakhs,
+      area: newProperty.areaSqft,
+      city: newProperty.city,
+      locality: newProperty.location,
+      pincode: data.pincode || "560001",
+      furnishing: newProperty.furnishing,
+      bedrooms: parseInt(newProperty.bedrooms) || 2,
+      bathrooms: parseInt(newProperty.bathrooms) || 2,
+      parking: newProperty.parking,
+      floor: newProperty.floor,
+      amenities: newProperty.amenities,
+      images: newProperty.images,
+    }).catch(() => {
+      // Offline fallback: property remains safely preserved in localStorage
+    });
   }
 
   return newProperty;
