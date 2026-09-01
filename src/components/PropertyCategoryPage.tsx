@@ -10,7 +10,7 @@ import {
   type PropertyCategory,
   type Project,
 } from "@/lib/data";
-import PropertyCard from "@/components/PropertyCard";
+import DatabasePropertyListing from "@/components/DatabasePropertyListing";
 
 export type CategoryConfig = {
   key: PropertyCategory | "pre-launch";
@@ -62,7 +62,7 @@ export default function PropertyCategoryPage({ config }: { config: CategoryConfi
 
   const listing = isPreLaunch
     ? (projects.filter((p) => p.status === "Under Construction") as unknown as never[])
-    : (properties.filter((p) => p.category === config.key) as never[]);
+    : properties.filter((p) => p.category === config.key);
 
   const marqueeItems = config.marquee.map((text, i) => (
     <span
@@ -133,7 +133,7 @@ export default function PropertyCategoryPage({ config }: { config: CategoryConfi
             </Link>
           </div>
 
-          {listing.length === 0 ? (
+          {isPreLaunch && listing.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center">
               <p className="text-base font-semibold text-slate-700">New listings coming soon</p>
               <p className="mt-2 text-sm text-slate-500">
@@ -146,18 +146,19 @@ export default function PropertyCategoryPage({ config }: { config: CategoryConfi
                 Register Interest →
               </Link>
             </div>
-          ) : (
+          ) : isPreLaunch ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {listing.map((item, i) => (
                 <Reveal key={i} delay={(i % 3) * 80}>
-                  {isPreLaunch ? (
-                    <ProjectMiniCard project={item as unknown as Project} />
-                  ) : (
-                    <PropertyCard property={item as never} />
-                  )}
+                  <ProjectMiniCard project={item as unknown as Project} />
                 </Reveal>
               ))}
             </div>
+          ) : (
+            <DatabasePropertyListing
+              category={config.key as PropertyCategory}
+              fallback={listing}
+            />
           )}
         </div>
       </section>

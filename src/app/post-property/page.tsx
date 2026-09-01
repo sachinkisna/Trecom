@@ -53,6 +53,7 @@ export default function PostPropertyPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [createdId, setCreatedId] = useState("");
+  const [createdPurpose, setCreatedPurpose] = useState("buy");
   const [intent, setIntent] = useState("Sell");
   const [category, setCategory] = useState("Apartment");
   const [config, setConfig] = useState("2 BHK");
@@ -182,6 +183,15 @@ export default function PostPropertyPage() {
       });
 
       setCreatedId(String(created.data.id || created.data._id || ""));
+      setCreatedPurpose(
+        purpose === "RENT"
+          ? "rent"
+          : purpose === "COMMERCIAL"
+            ? "commercial"
+            : purpose === "PLOTS"
+              ? "plots"
+              : "buy"
+      );
       setSubmitted(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not publish listing");
@@ -270,7 +280,7 @@ export default function PostPropertyPage() {
                         View listing
                       </Link>
                     )}
-                    <Link href="/properties" className="rounded-xl border border-[#064b35] px-6 py-3 text-sm font-bold text-[#064b35]">
+                    <Link href={`/properties?purpose=${createdPurpose}`} className="rounded-xl border border-[#064b35] px-6 py-3 text-sm font-bold text-[#064b35]">
                       Browse Properties
                     </Link>
                   </div>
