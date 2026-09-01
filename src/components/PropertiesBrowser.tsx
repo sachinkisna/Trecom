@@ -21,6 +21,7 @@ import {
 import { listPropertiesApi } from "@/lib/api/properties";
 import { mapApiPropertyToEnriched, mergeById } from "@/lib/property-mapper";
 import type { EnrichedProperty } from "@/lib/property-meta";
+import { trackEvent } from "@/lib/analytics";
 
 const PropertyMap = dynamic(() => import("@/components/PropertyMap"), {
   ssr: false,
