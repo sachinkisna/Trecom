@@ -16,7 +16,7 @@ import {
 } from "@/utils/filters";
 import { sortProperties } from "@/utils/sorting";
 import { searchPropertiesApi, listPropertiesApi } from "@/lib/api/properties";
-import { mapApiPropertyToCard } from "@/lib/property-mapper";
+import { mapApiPropertyToCard, mergeById } from "@/lib/property-mapper";
 import type { SearchDetected, SearchSuggestion } from "@/lib/api/properties";
 import HeroSearch, { saveRecentSearch } from "./HeroSearch";
 import BHKFilter from "./BHKFilter";
@@ -109,7 +109,11 @@ export default function MarketplacePage() {
             suggestions: [],
           }));
 
-      setApiResults(response.properties.map(mapApiPropertyToCard));
+      const mapped = response.properties.map(mapApiPropertyToCard);
+      const extras = query.trim()
+        ? []
+        : filterByPurpose(marketplaceProperties, activeTab);
+      setApiResults(mergeById(mapped, extras));
       setSearchMeta(response.search.detected);
       setSearchSuggestions(response.suggestions || []);
       setSearchTotal(response.total);

@@ -39,13 +39,21 @@ async function protect(req, res, next) {
   }
 }
 
-function optionalAuth(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer")) {
-    return next();
-  }
+async function optionalAuth(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer")) {
+      return next();
+    }
 
-  return protect(req, res, next);
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    if (user) req.user = user;
+    next();
+  } catch {
+    next();
+  }
 }
 
 module.exports = { protect, optionalAuth };

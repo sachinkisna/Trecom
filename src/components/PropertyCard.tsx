@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { Property } from "@/lib/data";
 import { enrichProperty, type EnrichedProperty } from "@/lib/property-meta";
+import { listingHref } from "@/lib/property-mapper";
 import FavoriteButton from "@/components/FavoriteButton";
 import ShareButton from "@/components/ShareButton";
 
@@ -26,7 +27,7 @@ export default function PropertyCard({
 
   return (
     <Link
-      href={`/properties/${property.id}/`}
+      href={listingHref(property.id)}
       onClick={onMapSelect}
       className="group overflow-hidden rounded-2xl border border-slate-200 bg-white transition duration-300 hover:-translate-y-1 hover:border-slate-300 hover:shadow-xl"
     >

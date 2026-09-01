@@ -18,7 +18,9 @@ import {
   PROPERTY_TYPES,
   PROPERTY_STATUSES,
 } from "@/lib/constants";
-import { trackEvent } from "@/lib/analytics";
+import { listPropertiesApi } from "@/lib/api/properties";
+import { mapApiPropertyToEnriched, mergeById } from "@/lib/property-mapper";
+import type { EnrichedProperty } from "@/lib/property-meta";
 
 const PropertyMap = dynamic(() => import("@/components/PropertyMap"), {
   ssr: false,
@@ -75,10 +77,30 @@ export default function PropertiesBrowser({
     searchParams.get("view") === "map" ? "map" : "list"
   );
   const [moreFilters, setMoreFilters] = useState(false);
-  const [compareIds, setCompareIds] = useState<number[]>([]);
-  const [selectedMapId, setSelectedMapId] = useState<number | undefined>();
+  const [compareIds, setCompareIds] = useState<Array<number | string>>([]);
+  const [selectedMapId, setSelectedMapId] = useState<number | string | undefined>();
+  const [dbProperties, setDbProperties] = useState<EnrichedProperty[]>([]);
 
-  const allProperties = useMemo(() => getAvailableProperties(), []);
+  useEffect(() => {
+    const purposeMap: Record<string, string> = {
+      buy: "BUY",
+      rent: "RENT",
+      commercial: "COMMERCIAL",
+      plots: "PLOTS",
+    };
+    listPropertiesApi({
+      purpose: purposeMap[category],
+      sort: "newest",
+      limit: 100,
+    })
+      .then((result) => setDbProperties(result.data.map(mapApiPropertyToEnriched)))
+      .catch(() => setDbProperties([]));
+  }, [category]);
+
+  const allProperties = useMemo(
+    () => mergeById(dbProperties, getAvailableProperties()),
+    [dbProperties]
+  );
 
   const filtered = useMemo(
     () =>
@@ -130,7 +152,7 @@ export default function PropertiesBrowser({
     syncUrl();
   }, [syncUrl]);
 
-  const toggleCompare = (id: number) => {
+  const toggleCompare = (id: number | string) => {
     setCompareIds((prev) => {
       if (prev.includes(id)) return prev.filter((x) => x !== id);
       if (prev.length >= 3) return prev;

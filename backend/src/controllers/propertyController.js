@@ -1,4 +1,8 @@
+const crypto = require("crypto");
+const mongoose = require("mongoose");
 const Property = require("../models/Property");
+const User = require("../models/User");
+const { publicFileUrl } = require("../middleware/upload");
 const {
   parsePagination,
   buildSort,
@@ -27,14 +31,64 @@ function formatOwner(owner) {
   };
 }
 
-function formatProperty(property) {
+function formatProperty(property, req) {
   const doc = property.toObject ? property.toObject() : property;
+  const origin =
+    (req &&
+      (process.env.PUBLIC_API_URL ||
+        `${req.protocol}://${req.get("host")}`)) ||
+    process.env.PUBLIC_API_URL ||
+    "";
+
+  const images = (doc.images || []).map((src) => {
+    if (!src) return src;
+    if (src.startsWith("http") || src.startsWith("data:")) return src;
+    const path = src.startsWith("/") ? src : `/${src}`;
+    return origin ? `${origin.replace(/\/$/, "")}${path}` : path;
+  });
+
   return {
     ...doc,
+    images,
     id: doc._id,
     owner: formatOwner(doc.ownerId),
     ownerId: doc.ownerId?._id || doc.ownerId,
   };
+}
+
+async function resolveOwner(req) {
+  if (req.user) return req.user;
+
+  const name = String(req.body.contactName || req.body.name || "").trim();
+  const phone = String(req.body.contactPhone || req.body.phone || "").trim();
+  const emailRaw = String(req.body.email || "").trim().toLowerCase();
+
+  if (!name || !phone) {
+    const error = new Error(
+      "Please log in, or provide your name and phone to list a property."
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const email =
+    emailRaw || `listing.${phone.replace(/\D/g, "")}@listings.trecom.local`;
+
+  let owner = await User.findOne({
+    $or: [{ email }, { phone }],
+  });
+
+  if (!owner) {
+    owner = await User.create({
+      name,
+      email,
+      phone,
+      password: `${crypto.randomBytes(18).toString("hex")}Aa1`,
+      role: "owner",
+    });
+  }
+
+  return owner;
 }
 
 async function queryProperties(req, res, next) {
@@ -54,7 +108,7 @@ async function queryProperties(req, res, next) {
 
     res.json({
       success: true,
-      data: properties.map(formatProperty),
+      data: properties.map((item) => formatProperty(item, req)),
       pagination: buildPaginationMeta(total, page, limit),
     });
   } catch (error) {
@@ -69,7 +123,7 @@ async function searchProperties(req, res, next) {
     res.json({
       success: true,
       search: result.search,
-      properties: result.properties.map(formatProperty),
+      properties: result.properties.map((item) => formatProperty(item, req)),
       total: result.total,
       suggestions: result.suggestions,
       pagination: result.pagination,
@@ -95,6 +149,13 @@ async function getSuggestions(req, res, next) {
 
 async function getProperty(req, res, next) {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(404).json({
+        success: false,
+        message: "Property not found",
+      });
+    }
+
     const property = await Property.findById(req.params.id).populate(
       "ownerId",
       "name email phone role"
@@ -109,7 +170,28 @@ async function getProperty(req, res, next) {
 
     res.json({
       success: true,
-      data: formatProperty(property),
+      data: formatProperty(property, req),
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function uploadImages(req, res, next) {
+  try {
+    const files = req.files || [];
+    if (!files.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Please upload at least one image",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        urls: files.map((file) => publicFileUrl(req, file.filename)),
+      },
     });
   } catch (error) {
     next(error);
@@ -121,10 +203,14 @@ async function createProperty(req, res, next) {
     const errors = validatePropertyBody(req.body);
     if (errors.length) return sendValidationErrors(res, errors);
 
-    const postedBy =
-      req.user.role === "agent"
+    const owner = await resolveOwner(req);
+
+    const requestedPostedBy = String(req.body.postedBy || "").trim();
+    const postedBy = ["Owner", "Agent", "Builder"].includes(requestedPostedBy)
+      ? requestedPostedBy
+      : owner.role === "agent"
         ? "Agent"
-        : req.user.role === "builder"
+        : owner.role === "builder"
           ? "Builder"
           : "Owner";
 
@@ -145,6 +231,7 @@ async function createProperty(req, res, next) {
       bedrooms: req.body.bedrooms ? Number(req.body.bedrooms) : 0,
       bathrooms: req.body.bathrooms ? Number(req.body.bathrooms) : 0,
       parking: req.body.parking?.trim() || "",
+      facing: req.body.facing?.trim() || "",
       floor: req.body.floor?.trim() || "",
       totalFloors: req.body.totalFloors?.trim() || "",
       amenities: Array.isArray(req.body.amenities) ? req.body.amenities : [],
@@ -152,14 +239,14 @@ async function createProperty(req, res, next) {
       projectName: req.body.projectName?.trim() || "",
       verified: false,
       postedBy,
-      ownerId: req.user._id,
+      ownerId: owner._id,
     });
 
     const populated = await property.populate("ownerId", "name email phone role");
 
     res.status(201).json({
       success: true,
-      data: formatProperty(populated),
+      data: formatProperty(populated, req),
     });
   } catch (error) {
     next(error);
@@ -217,7 +304,7 @@ async function updateProperty(req, res, next) {
 
     res.json({
       success: true,
-      data: formatProperty(populated),
+      data: formatProperty(populated, req),
     });
   } catch (error) {
     next(error);
@@ -271,7 +358,7 @@ async function getMyProperties(req, res, next) {
 
     res.json({
       success: true,
-      data: properties.map(formatProperty),
+      data: properties.map((item) => formatProperty(item, req)),
       pagination: buildPaginationMeta(total, page, limit),
     });
   } catch (error) {
@@ -285,6 +372,7 @@ module.exports = {
   getSuggestions,
   getProperty,
   createProperty,
+  uploadImages,
   updateProperty,
   deleteProperty,
   getMyProperties,

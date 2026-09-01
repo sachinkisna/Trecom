@@ -26,6 +26,11 @@ function errorHandler(err, req, res, next) {
     message = `Duplicate value for ${field}`;
   }
 
+  if (err.name === "MulterError") {
+    statusCode = 400;
+    message = err.message;
+  }
+
   if (process.env.NODE_ENV === "production" && statusCode === 500) {
     message = "Internal server error";
   }

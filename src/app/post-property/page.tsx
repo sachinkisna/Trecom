@@ -6,6 +6,10 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/components/AuthProvider";
 import { saveLead } from "@/lib/leads";
+import {
+  createPropertyApi,
+  uploadPropertyImages,
+} from "@/lib/api/properties";
 
 const intents = ["Sell", "Rent"];
 const categories = [
@@ -44,8 +48,11 @@ const whatsappLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent
 type Preview = { file: File; url: string };
 
 export default function PostPropertyPage() {
-  const { isLoggedIn } = useAuth();
+  const { user } = useAuth();
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [createdId, setCreatedId] = useState("");
   const [intent, setIntent] = useState("Sell");
   const [category, setCategory] = useState("Apartment");
   const [config, setConfig] = useState("2 BHK");
@@ -99,6 +106,90 @@ export default function PostPropertyPage() {
         ? "Expected Price (₹)"
         : "Expected Price (₹)";
 
+  const parsePrice = (raw: string, forRent: boolean) => {
+    const text = raw.trim().toLowerCase().replace(/,/g, "");
+    const amount = parseFloat(text.replace(/[^0-9.]/g, "")) || 0;
+    if (text.includes("cr")) return Math.round(amount * 10000000);
+    if (text.includes("lakh") || text.includes("lac")) return Math.round(amount * 100000);
+    if (!forRent && amount > 0 && amount < 10000) return Math.round(amount * 100000);
+    return Math.round(amount);
+  };
+
+  const splitLocation = (value: string) => {
+    const parts = value.split(",").map((part) => part.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      return { locality: parts.slice(0, -1).join(", "), city: parts[parts.length - 1] };
+    }
+    return { locality: value.trim() || "Bangalore", city: "Bangalore" };
+  };
+
+  const publishListing = async () => {
+    setError("");
+    setSubmitting(true);
+    try {
+      const { locality, city } = splitLocation(form.location);
+      const forRent = intent === "Rent";
+      const purpose =
+        category === "Commercial"
+          ? "COMMERCIAL"
+          : category === "Plot"
+            ? "PLOTS"
+            : forRent
+              ? "RENT"
+              : "BUY";
+      const imageUrls =
+        images.length > 0 ? await uploadPropertyImages(images.map((img) => img.file)) : [];
+      const bathrooms = parseInt(form.bathrooms.replace(/[^0-9]/g, ""), 10) || 0;
+      const bedrooms = parseInt(config.replace(/[^0-9]/g, ""), 10) || 0;
+      const area = parseInt(form.builtup.replace(/[^0-9]/g, ""), 10) || 0;
+
+      const created = await createPropertyApi({
+        title: form.title.trim(),
+        description: form.description.trim(),
+        purpose,
+        propertyType: category,
+        bhk: category === "Plot" ? "" : config,
+        price: parsePrice(form.price, forRent),
+        area,
+        city,
+        locality,
+        pincode: form.pincode,
+        furnishing,
+        facing,
+        floor: form.floor,
+        parking: form.parking,
+        bathrooms,
+        bedrooms,
+        images: imageUrls,
+        amenities,
+        postedBy: ownerType,
+        contactName: form.name || user?.name,
+        contactPhone: form.phone || user?.phone,
+        name: form.name || user?.name,
+        phone: form.phone || user?.phone,
+        email: form.email || user?.email,
+      });
+
+      saveLead({
+        type: "post_property",
+        name: form.name,
+        phone: form.phone,
+        email: form.email || undefined,
+        source: "post_property_form",
+        location: form.location,
+        budget: form.price,
+        message: `${intent} ${category} - ${form.title}. ${form.description}`,
+      });
+
+      setCreatedId(String(created.data.id || created.data._id || ""));
+      setSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not publish listing");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <>
       <Header />
@@ -120,22 +211,6 @@ export default function PostPropertyPage() {
               </p>
             </div>
 
-            {!isLoggedIn && !submitted && (
-              <div className="mt-10 rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center">
-                <p className="font-semibold text-slate-800">Sign in to post your property</p>
-                <p className="mt-1 text-sm text-slate-600">
-                  Create an account or log in to list your property and manage enquiries.
-                </p>
-                <Link
-                  href="/login/?redirect=/post-property/"
-                  className="mt-4 inline-flex rounded-xl bg-[#064b35] px-6 py-3 text-sm font-bold text-white"
-                >
-                  Login / Register
-                </Link>
-              </div>
-            )}
-
-            {(isLoggedIn || submitted) && (
             <>
             <div className="mt-10 grid gap-5 md:grid-cols-2">
               <div className="rounded-3xl border-2 border-[#064b35] bg-white p-7 shadow-sm">
@@ -185,29 +260,26 @@ export default function PostPropertyPage() {
               {submitted ? (
                 <div className="mt-8 flex flex-col items-center py-10 text-center">
                   <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#eef7f2] text-2xl text-[#064b35]">✓</div>
-                  <h3 className="mt-5 text-xl font-bold text-slate-900">Property submitted</h3>
+                  <h3 className="mt-5 text-xl font-bold text-slate-900">Your listing is live</h3>
                   <p className="mt-2 max-w-sm text-sm text-slate-500">
-                    Thank you, {form.name || "there"}. We received {images.length} photo(s) and our team will review your listing shortly.
+                    Thank you, {form.name || "there"}. Your property is saved in our database and now visible to everyone, with {images.length} photo(s).
                   </p>
-                  <Link href="/properties" className="mt-6 rounded-xl bg-[#064b35] px-6 py-3 text-sm font-bold text-white">
-                    Browse Properties
-                  </Link>
+                  <div className="mt-6 flex flex-wrap justify-center gap-3">
+                    {createdId && (
+                      <Link href={`/property/${createdId}/`} className="rounded-xl bg-[#064b35] px-6 py-3 text-sm font-bold text-white">
+                        View listing
+                      </Link>
+                    )}
+                    <Link href="/properties" className="rounded-xl border border-[#064b35] px-6 py-3 text-sm font-bold text-[#064b35]">
+                      Browse Properties
+                    </Link>
+                  </div>
                 </div>
               ) : (
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    saveLead({
-                      type: "post_property",
-                      name: form.name,
-                      phone: form.phone,
-                      email: form.email || undefined,
-                      source: "post_property_form",
-                      location: form.location,
-                      budget: form.price,
-                      message: `${intent} ${category} - ${form.title}. ${form.description}`,
-                    });
-                    setSubmitted(true);
+                    void publishListing();
                   }}
                   className="mt-6 space-y-8"
                 >
@@ -543,17 +615,20 @@ export default function PostPropertyPage() {
                     </div>
                   </section>
 
+                  {error && (
+                    <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>
+                  )}
                   <button
                     type="submit"
-                    className="w-full rounded-xl bg-[#064b35] py-3.5 text-sm font-bold text-white transition hover:bg-[#043c2b]"
+                    disabled={submitting}
+                    className="w-full rounded-xl bg-[#064b35] py-3.5 text-sm font-bold text-white transition hover:bg-[#043c2b] disabled:opacity-60"
                   >
-                    Submit Property
+                    {submitting ? "Publishing…" : "Submit Property"}
                   </button>
                 </form>
               )}
             </div>
             </>
-            )}
 
             {/* Post property through WhatsApp Section */}
             <div className="mt-10 overflow-hidden rounded-3xl border border-emerald-200 bg-emerald-50/80 p-6 sm:p-8 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">

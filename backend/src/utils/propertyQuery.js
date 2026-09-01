@@ -37,7 +37,7 @@ function parsePagination(query) {
 
   if (!Number.isFinite(page) || page < 1) page = 1;
   if (!Number.isFinite(limit) || limit < 1) limit = 20;
-  if (limit > 50) limit = 50;
+  if (limit > 100) limit = 100;
 
   return { page, limit, skip: (page - 1) * limit };
 }

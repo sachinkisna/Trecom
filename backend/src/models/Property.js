@@ -41,7 +41,7 @@ const propertySchema = new mongoose.Schema(
     },
     area: {
       type: Number,
-      min: [1, "Area must be positive"],
+      min: [0, "Area cannot be negative"],
       default: 0,
     },
     city: {
@@ -87,6 +87,11 @@ const propertySchema = new mongoose.Schema(
       default: 0,
     },
     parking: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    facing: {
       type: String,
       trim: true,
       default: "",
