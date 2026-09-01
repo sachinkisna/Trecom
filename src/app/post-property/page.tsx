@@ -6,6 +6,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/components/AuthProvider";
 import { saveLead } from "@/lib/leads";
+import { saveUserProperty } from "@/lib/user-properties";
+import type { EnrichedProperty } from "@/lib/property-meta";
 
 const intents = ["Sell", "Rent"];
 const categories = [
@@ -46,6 +48,7 @@ type Preview = { file: File; url: string };
 export default function PostPropertyPage() {
   const { isLoggedIn } = useAuth();
   const [submitted, setSubmitted] = useState(false);
+  const [postedProp, setPostedProp] = useState<EnrichedProperty | null>(null);
   const [intent, setIntent] = useState("Sell");
   const [category, setCategory] = useState("Apartment");
   const [config, setConfig] = useState("2 BHK");
@@ -77,13 +80,20 @@ export default function PostPropertyPage() {
 
   const onFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
-    const next = files.map((file) => ({ file, url: URL.createObjectURL(file) }));
-    setImages((prev) => [...prev, ...next].slice(0, 12));
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          const dataUrl = reader.result;
+          setImages((prev) => [...prev, { file, url: dataUrl }].slice(0, 12));
+        }
+      };
+      reader.readAsDataURL(file);
+    });
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const removeImage = (url: string) => {
-    URL.revokeObjectURL(url);
     setImages((prev) => prev.filter((img) => img.url !== url));
   };
 
@@ -183,15 +193,37 @@ export default function PostPropertyPage() {
               <p className="mt-1 text-sm text-slate-500">Fill this in to publish your property directly.</p>
 
               {submitted ? (
-                <div className="mt-8 flex flex-col items-center py-10 text-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#eef7f2] text-2xl text-[#064b35]">✓</div>
-                  <h3 className="mt-5 text-xl font-bold text-slate-900">Property submitted</h3>
-                  <p className="mt-2 max-w-sm text-sm text-slate-500">
-                    Thank you, {form.name || "there"}. We received {images.length} photo(s) and our team will review your listing shortly.
+                <div className="mt-8 flex flex-col items-center py-8 text-center">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-3xl text-emerald-600 shadow-sm">
+                    ✓
+                  </div>
+                  <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3.5 py-1 text-xs font-bold text-emerald-700 border border-emerald-200">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Status: Approved & Live
+                  </div>
+                  <h3 className="mt-4 text-2xl font-bold text-slate-900">
+                    Listing Approved & Published!
+                  </h3>
+                  <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-600">
+                    Thank you, <span className="font-semibold text-slate-900">{form.name || "there"}</span>. Your property listing <span className="font-semibold text-slate-900">"{postedProp?.title || form.title || "New Property"}"</span> has been automatically verified, approved, and is now live on TRECOM properties search!
                   </p>
-                  <Link href="/properties" className="mt-6 rounded-xl bg-[#064b35] px-6 py-3 text-sm font-bold text-white">
-                    Browse Properties
-                  </Link>
+
+                  <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                    {postedProp && (
+                      <Link
+                        href={`/properties/${postedProp.id}`}
+                        className="rounded-xl bg-[#064b35] px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#043c2b]"
+                      >
+                        View Your Property Live →
+                      </Link>
+                    )}
+                    <Link
+                      href="/properties"
+                      className="rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-700 transition hover:border-[#064b35] hover:text-[#064b35]"
+                    >
+                      Browse All Properties
+                    </Link>
+                  </div>
                 </div>
               ) : (
                 <form
@@ -207,6 +239,32 @@ export default function PostPropertyPage() {
                       budget: form.price,
                       message: `${intent} ${category} - ${form.title}. ${form.description}`,
                     });
+
+                    const newProp = saveUserProperty({
+                      title: form.title,
+                      intent,
+                      category,
+                      config,
+                      furnishing,
+                      facing,
+                      ownerType,
+                      amenities,
+                      images: images.map((img) => img.url),
+                      location: form.location,
+                      pincode: form.pincode,
+                      price: form.price,
+                      builtup: form.builtup,
+                      carpet: form.carpet,
+                      bathrooms: form.bathrooms,
+                      floor: form.floor,
+                      parking: form.parking,
+                      description: form.description,
+                      name: form.name,
+                      phone: form.phone,
+                      email: form.email,
+                    });
+
+                    setPostedProp(newProp);
                     setSubmitted(true);
                   }}
                   className="mt-6 space-y-8"

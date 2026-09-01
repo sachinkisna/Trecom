@@ -78,7 +78,11 @@ export default function PropertiesBrowser({
   const [compareIds, setCompareIds] = useState<number[]>([]);
   const [selectedMapId, setSelectedMapId] = useState<number | undefined>();
 
-  const allProperties = useMemo(() => getAvailableProperties(), []);
+  const [allProperties, setAllProperties] = useState<ReturnType<typeof getAvailableProperties>>([]);
+
+  useEffect(() => {
+    setAllProperties(getAvailableProperties());
+  }, []);
 
   const filtered = useMemo(
     () =>

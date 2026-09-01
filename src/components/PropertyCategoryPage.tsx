@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -10,6 +13,7 @@ import {
   type PropertyCategory,
   type Project,
 } from "@/lib/data";
+import { getAvailableProperties } from "@/lib/search";
 import PropertyCard from "@/components/PropertyCard";
 
 export type CategoryConfig = {
@@ -59,10 +63,16 @@ function ProjectMiniCard({ project }: { project: Project }) {
 
 export default function PropertyCategoryPage({ config }: { config: CategoryConfig }) {
   const isPreLaunch = config.key === "pre-launch";
+  const [listing, setListing] = useState<never[]>([]);
 
-  const listing = isPreLaunch
-    ? (projects.filter((p) => p.status === "Under Construction") as unknown as never[])
-    : (properties.filter((p) => p.category === config.key) as never[]);
+  useEffect(() => {
+    if (isPreLaunch) {
+      setListing(projects.filter((p) => p.status === "Under Construction") as unknown as never[]);
+    } else {
+      const all = getAvailableProperties();
+      setListing(all.filter((p) => p.category === config.key) as never[]);
+    }
+  }, [config.key, isPreLaunch]);
 
   const marqueeItems = config.marquee.map((text, i) => (
     <span

@@ -23,8 +23,12 @@ export type AutocompleteSuggestion = {
   href?: string;
 };
 
+import { getUserProperties } from "./user-properties";
+
 export function getEnrichedProperties(): EnrichedProperty[] {
-  return properties.map(enrichProperty);
+  const staticProps = properties.map(enrichProperty);
+  const userProps = getUserProperties();
+  return [...userProps, ...staticProps];
 }
 
 export function getAvailableProperties(): EnrichedProperty[] {
@@ -287,10 +291,13 @@ export function getRecentProperties(limit = 6): EnrichedProperty[] {
 }
 
 export function getPropertyById(id: number | string): EnrichedProperty | undefined {
+  const all = getEnrichedProperties();
   const numericId = typeof id === "string" ? Number(id) : id;
-  if (!Number.isFinite(numericId)) return undefined;
-  const p = properties.find((x) => x.id === numericId);
-  return p ? enrichProperty(p) : undefined;
+  if (Number.isFinite(numericId)) {
+    const found = all.find((x) => x.id === numericId);
+    if (found) return found;
+  }
+  return all.find((x) => String(x.id) === String(id));
 }
 
 export type { Property, Project, EnrichedProperty };
