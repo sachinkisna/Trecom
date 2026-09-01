@@ -147,11 +147,3 @@ export async function getSearchSuggestionsApi(q: string) {
     `/properties/suggestions?q=${encodeURIComponent(q.trim())}`
   );
 }
-
-export async function createPropertyApi(data: Partial<ApiProperty>, token?: string) {
-  return apiFetch<{ success: boolean; data: ApiProperty }>("/properties", {
-    method: "POST",
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-    body: JSON.stringify(data),
-  });
-}
