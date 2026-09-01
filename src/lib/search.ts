@@ -287,10 +287,8 @@ export function getRecentProperties(limit = 6): EnrichedProperty[] {
 }
 
 export function getPropertyById(id: number | string): EnrichedProperty | undefined {
-  const numericId = typeof id === "string" ? Number(id) : id;
-  if (!Number.isFinite(numericId)) return undefined;
-  const p = properties.find((x) => x.id === numericId);
-  return p ? enrichProperty(p) : undefined;
+  const match = properties.find((x) => String(x.id) === String(id));
+  return match ? enrichProperty(match) : undefined;
 }
 
 export type { Property, Project, EnrichedProperty };

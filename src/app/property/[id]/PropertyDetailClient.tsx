@@ -19,19 +19,60 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PropertyEnquiryForm from "@/components/PropertyEnquiryForm";
 import { getMarketplaceProperty } from "@/data/properties";
-import { toggleFavorite, getFavorites } from "@/lib/favorites";
+import { getPropertyApi } from "@/lib/api/properties";
+import { mapApiPropertyToCard } from "@/lib/property-mapper";
+import { toggleFavorite, isFavorite } from "@/lib/favorites";
+import type { MarketplaceProperty } from "@/data/properties";
 import { buildWhatsAppUrl, buildCallUrl } from "@/lib/whatsapp";
 import { CONTACT } from "@/lib/constants";
 
 export default function PropertyDetailClient({ id }: { id: string }) {
-  const property = getMarketplaceProperty(Number(id));
+  const staticProperty = getMarketplaceProperty(id);
+  const [property, setProperty] = useState<MarketplaceProperty | null>(staticProperty ?? null);
+  const [loading, setLoading] = useState(!staticProperty);
   const [activeImage, setActiveImage] = useState(0);
   const [saved, setSaved] = useState(false);
   const [enquiryType, setEnquiryType] = useState<"enquiry" | "callback" | "site_visit">("enquiry");
 
   useEffect(() => {
-    if (property) setSaved(getFavorites().includes(property.id));
+    if (staticProperty) {
+      setProperty(staticProperty);
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    getPropertyApi(id)
+      .then((result) => {
+        if (!cancelled) setProperty(mapApiPropertyToCard(result.data));
+      })
+      .catch(() => {
+        if (!cancelled) setProperty(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, staticProperty]);
+
+  useEffect(() => {
+    if (property) setSaved(isFavorite(property.id));
   }, [property]);
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <main className="flex min-h-[50vh] items-center justify-center bg-[#f8fafc]">
+          <p className="text-sm text-slate-500">Loading property…</p>
+        </main>
+        <Footer />
+      </>
+    );
+  }
 
   if (!property) notFound();
 

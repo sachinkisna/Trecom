@@ -737,6 +737,6 @@ export const marketplaceProperties: MarketplaceProperty[] = [
   },
 ];
 
-export function getMarketplaceProperty(id: number) {
-  return marketplaceProperties.find((p) => p.id === id);
+export function getMarketplaceProperty(id: number | string) {
+  return marketplaceProperties.find((p) => String(p.id) === String(id));
 }

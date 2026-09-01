@@ -49,9 +49,16 @@ async function login(req, res, next) {
     const errors = validateLoginBody(req.body);
     if (errors.length) return sendValidationErrors(res, errors);
 
-    const user = await User.findOne({
-      email: req.body.email.toLowerCase().trim(),
-    }).select("+password");
+    const identifier = String(req.body.email || req.body.phone || "")
+      .trim();
+
+    const user = await User.findOne(
+      identifier.includes("@")
+        ? { email: identifier.toLowerCase() }
+        : {
+            $or: [{ phone: identifier }, { email: identifier.toLowerCase() }],
+          }
+    ).select("+password");
 
     if (!user || !(await user.matchPassword(req.body.password))) {
       return res.status(401).json({

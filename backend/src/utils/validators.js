@@ -37,8 +37,11 @@ function validateRegisterBody(body) {
 
 function validateLoginBody(body) {
   const errors = [];
+  const identifier = String(body.email || body.phone || "").trim();
 
-  if (!body.email || !isValidEmail(body.email)) {
+  if (!identifier) {
+    errors.push("Email or phone is required");
+  } else if (identifier.includes("@") && !isValidEmail(identifier)) {
     errors.push("Valid email is required");
   }
 
@@ -66,10 +69,7 @@ function validatePropertyBody(body, isUpdate = false) {
   }
 
   if (!isUpdate || body.propertyType !== undefined) {
-    const type = String(body.propertyType || "").trim();
-    const match = PROPERTY_TYPES.find(
-      (item) => item.toLowerCase() === type.toLowerCase()
-    );
+    const match = normalizePropertyType(body.propertyType);
     if (!match) {
       errors.push("Valid property type is required");
     }
@@ -156,7 +156,20 @@ function sendValidationErrors(res, errors) {
 
 function normalizePropertyType(value) {
   const type = String(value || "").trim();
-  return PROPERTY_TYPES.find((item) => item.toLowerCase() === type.toLowerCase());
+  const aliases = {
+    "independent house": "House",
+    resale: "Apartment",
+    commercial: "Office",
+    "pre-launch": "Apartment",
+    prelaunch: "Apartment",
+    "office space": "Office",
+    retail: "Shop",
+    "plot / other": "Plot",
+  };
+  const aliased = aliases[type.toLowerCase()] || type;
+  return PROPERTY_TYPES.find(
+    (item) => item.toLowerCase() === aliased.toLowerCase()
+  );
 }
 
 module.exports = {

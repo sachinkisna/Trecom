@@ -3,11 +3,12 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import type { EnrichedProperty } from "@/lib/property-meta";
+import { listingHref } from "@/lib/property-mapper";
 
 type PropertyMapProps = {
   properties: EnrichedProperty[];
-  selectedId?: number;
-  onSelect?: (id: number) => void;
+  selectedId?: number | string;
+  onSelect?: (id: number | string) => void;
   className?: string;
 };
 
@@ -109,7 +110,7 @@ export default function PropertyMap({
             .map((p) => (
               <Link
                 key={p.id}
-                href={`/properties/${p.id}/`}
+                href={listingHref(p.id)}
                 className="flex items-center gap-3 rounded-xl bg-white p-3 shadow-lg"
               >
                 <img src={p.image} alt="" className="h-14 w-20 rounded-lg object-cover" />

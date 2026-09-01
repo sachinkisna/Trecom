@@ -10,17 +10,46 @@ import { useAuth } from "@/components/AuthProvider";
 function LoginForm() {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [name, setName] = useState("");
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") ?? "/";
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(name || undefined);
-    setSubmitted(true);
-    setTimeout(() => router.push(redirect), 1500);
+    setError("");
+    setBusy(true);
+    try {
+      const { loginApi, registerApi } = await import("@/lib/api/auth");
+      const isEmail = identifier.includes("@");
+      const email = isEmail
+        ? identifier.trim().toLowerCase()
+        : `${identifier.replace(/\D/g, "") || "user"}@listings.trecom.local`;
+      const phone = isEmail ? undefined : identifier.trim();
+
+      const user =
+        mode === "register"
+          ? await registerApi({
+              name: name.trim() || "Member",
+              email,
+              password,
+              phone,
+            })
+          : await loginApi({ email: identifier.trim(), password });
+
+      login(user);
+      setSubmitted(true);
+      setTimeout(() => router.push(redirect), 800);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not sign in");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -68,6 +97,8 @@ function LoginForm() {
             <label className="text-xs font-semibold text-slate-600">Phone or Email</label>
             <input
               required
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
               className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#064b35]"
               placeholder="+91 or you@example.com"
             />
@@ -77,15 +108,20 @@ function LoginForm() {
             <input
               type="password"
               required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="mt-1.5 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#064b35]"
               placeholder="••••••••"
             />
           </div>
+          {error && <p className="text-sm text-red-600">{error}</p>}
           <button
             type="submit"
-            className="w-full rounded-xl bg-[#064b35] py-3.5 text-sm font-bold text-white transition hover:bg-[#043c2b]"
+            disabled={busy}
+            className="w-full rounded-xl bg-[#064b35] py-3.5 text-sm font-bold text-white transition hover:bg-[#043c2b] disabled:opacity-60"
           >
-            {mode === "login" ? "Login" : "Create Account"}
+            {busy ? "Please wait…" : mode === "login" ? "Login" : "Create Account"}
           </button>
           <p className="text-center text-xs text-slate-400">
             By continuing you agree to our{" "}

@@ -153,7 +153,7 @@ const meta: Record<number, PropertyMeta> = {
 export type EnrichedProperty = Property & PropertyMeta;
 
 export function enrichProperty(property: Property): EnrichedProperty {
-  const extra = meta[property.id] ?? {
+  const extra = meta[Number(property.id)] ?? {
     lat: 12.9716,
     lng: 77.5946,
     status: "Available" as PropertyStatus,

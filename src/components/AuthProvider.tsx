@@ -7,13 +7,12 @@ import {
   useState,
   type ReactNode,
 } from "react";
-
-type User = { name: string; phone?: string };
+import type { AuthUser } from "@/lib/api/auth";
 
 type AuthValue = {
   isLoggedIn: boolean;
-  user: User | null;
-  login: (name?: string) => void;
+  user: AuthUser | null;
+  login: (user: AuthUser | string) => void;
   logout: () => void;
 };
 
@@ -21,13 +20,14 @@ const AuthContext = createContext<AuthValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem("trecom_auth");
       if (raw) {
-        setUser(JSON.parse(raw));
+        const parsed = JSON.parse(raw) as AuthUser;
+        setUser(parsed);
         setIsLoggedIn(true);
       }
     } catch {
@@ -35,8 +35,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const login = (name?: string) => {
-    const u = { name: name?.trim() || "Member" };
+  const login = (input: AuthUser | string) => {
+    const u: AuthUser =
+      typeof input === "string"
+        ? { id: "local", name: input.trim() || "Member" }
+        : { ...input, name: input.name?.trim() || "Member" };
     localStorage.setItem("trecom_auth", JSON.stringify(u));
     setUser(u);
     setIsLoggedIn(true);

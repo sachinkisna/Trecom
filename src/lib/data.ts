@@ -5,7 +5,7 @@ export type PropertyCategory =
   | "plots";
 
 export type Property = {
-  id: number;
+  id: number | string;
   title: string;
   location: string;
   city: string;
