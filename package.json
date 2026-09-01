@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "cross-env NEXT_DISABLE_SWC_NATIVE=1 next build",
     "build": "cross-env NEXT_DISABLE_SWC_NATIVE=1 next build --webpack",
     "start": "next start",
     "lint": "eslint"
@@ -13,17 +12,18 @@
     "@next/swc-wasm-nodejs": "16.3.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.33.0",
+    "mongoose": "^9.9.4",
     "next": "16.3.1",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
   "devDependencies": {
-    "cross-env": "^7.0.3",
     "@tailwindcss/postcss": "^4",
     "@types/leaflet": "^1.9.22",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^7.0.3",
     "eslint": "^9",
     "eslint-config-next": "16.3.1",
     "tailwindcss": "^4",
