@@ -202,7 +202,7 @@ export default function PropertiesBrowser({
               type="button"
               onClick={() => {
                 setView("list");
-                TrackEvent("map_view", { mode: "list" });
+                trackEvent("map_view", { mode: "list" });
               }}
               className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                 view === "list"
@@ -216,7 +216,7 @@ export default function PropertiesBrowser({
               type="button"
               onClick={() => {
                 setView("map");
-                TrackEvent("map_view", { mode: "map" });
+                trackEvent("map_view", { mode: "map" });
               }}
               className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                 view === "map"
@@ -235,7 +235,7 @@ export default function PropertiesBrowser({
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && TrackEvent("search", { q: search })}
+              onKeyDown={(e) => e.key === "Enter" && trackEvent("search", { q: search })}
               placeholder="Search by locality, project, landmark or property ID"
               className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
             />
