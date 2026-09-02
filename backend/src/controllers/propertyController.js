@@ -2,7 +2,7 @@ const crypto = require("crypto");
 const mongoose = require("mongoose");
 const Property = require("../models/Property");
 const User = require("../models/User");
-const { publicFileUrl } = require("../middleware/upload");
+const { uploadImagesToImageKit } = require("../services/imagekitService");
 const {
   parsePagination,
   buildSort,
@@ -187,10 +187,12 @@ async function uploadImages(req, res, next) {
       });
     }
 
+    const urls = await uploadImagesToImageKit(files);
+
     res.json({
       success: true,
       data: {
-        urls: files.map((file) => publicFileUrl(req, file.filename)),
+        urls,
       },
     });
   } catch (error) {

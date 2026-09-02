@@ -6,7 +6,6 @@ const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const connectDB = require("./config/db");
 const { notFound, errorHandler } = require("./middleware/errorMiddleware");
-const { uploadDir } = require("./middleware/upload");
 
 const authRoutes = require("./routes/authRoutes");
 const propertyRoutes = require("./routes/propertyRoutes");
@@ -19,25 +18,27 @@ const projectRoutes = require("./routes/projectRoutes");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-connectDB().catch((error) => {
-  console.error("MongoDB connection failed:", error.message);
-  process.exit(1);
-});
-
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
   })
 );
+const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:3000,https://trecom.ai,https://www.trecom.ai")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error("Origin not allowed by CORS"));
+    },
     credentials: true,
   })
 );
 app.use(express.json({ limit: "12mb" }));
 app.use(express.urlencoded({ extended: true, limit: "12mb" }));
-app.use("/uploads", express.static(uploadDir));
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -78,8 +79,15 @@ app.use("/api/projects", projectRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`TRECOM API running on http://localhost:${PORT}`);
-});
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`TRECOM API running on http://localhost:${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("MongoDB connection failed:", error.message);
+    process.exit(1);
+  });
 
 module.exports = app;

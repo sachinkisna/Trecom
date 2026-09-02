@@ -137,11 +137,18 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const auth = authHeaders();
   Object.entries(auth).forEach(([key, value]) => headers.set(key, value));
 
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    headers,
-    cache: "no-store",
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      ...init,
+      headers,
+      cache: "no-store",
+    });
+  } catch {
+    throw new Error(
+      "Cannot connect to the property service. Please make sure the backend API and database are running."
+    );
+  }
 
   const data = await response.json().catch(() => ({}));
 
