@@ -8,6 +8,17 @@ function errorHandler(err, req, res, next) {
   let statusCode = err.statusCode || 500;
   let message = err.message || "Server error";
 
+  // Keep the public response safe in production, but always retain enough
+  // context in the server logs to diagnose a failed public submission.
+  console.error("API request failed", {
+    method: req.method,
+    path: req.originalUrl,
+    statusCode,
+    name: err.name,
+    message: err.message,
+    stack: err.stack,
+  });
+
   if (err.name === "CastError") {
     statusCode = 400;
     message = "Invalid resource ID";
