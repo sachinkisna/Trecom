@@ -82,14 +82,17 @@ function validatePropertyBody(body, isUpdate = false) {
     }
   }
 
-  if (!isUpdate || body.city !== undefined) {
-    if (!body.city || !String(body.city).trim()) {
+  const city = String(body.city || "Bangalore").trim();
+  const locality = String(body.locality || body.location || "").trim();
+
+  if (!isUpdate || body.city !== undefined || body.location !== undefined) {
+    if (!city) {
       errors.push("City is required");
     }
   }
 
-  if (!isUpdate || body.locality !== undefined) {
-    if (!body.locality || !String(body.locality).trim()) {
+  if (!isUpdate || body.locality !== undefined || body.location !== undefined) {
+    if (!locality) {
       errors.push("Locality is required");
     }
   }

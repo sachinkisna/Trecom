@@ -216,6 +216,10 @@ async function createProperty(req, res, next) {
           ? "Builder"
           : "Owner";
 
+    const locationRaw = String(req.body.locality || req.body.location || "").trim();
+    const cityRaw = String(req.body.city || "").trim() || "Bangalore";
+    const localityRaw = locationRaw || cityRaw;
+
     const property = await Property.create({
       title: req.body.title.trim(),
       description: req.body.description?.trim() || "",
@@ -224,8 +228,8 @@ async function createProperty(req, res, next) {
       bhk: req.body.bhk?.trim() || "",
       price: Number(req.body.price),
       area: req.body.area ? Number(req.body.area) : 0,
-      city: req.body.city.trim(),
-      locality: req.body.locality.trim(),
+      city: cityRaw,
+      locality: localityRaw,
       pincode: req.body.pincode?.trim() || "",
       address: req.body.address?.trim() || "",
       furnishing: req.body.furnishing?.trim() || "",

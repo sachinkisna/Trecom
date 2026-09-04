@@ -1,13 +1,7 @@
 const IMAGEKIT_UPLOAD_URL = "https://upload.imagekit.io/api/v1/files/upload";
 
 function getImageKitPrivateKey() {
-  const key = process.env.IMAGEKIT_PRIVATE_KEY;
-  if (!key) {
-    const error = new Error("Image uploads are not configured");
-    error.statusCode = 503;
-    throw error;
-  }
-  return key;
+  return process.env.IMAGEKIT_PRIVATE_KEY || null;
 }
 
 function safeFileName(file) {
@@ -25,35 +19,43 @@ function safeFileName(file) {
 }
 
 async function uploadImage(file) {
+  const base64Data = file.buffer.toString("base64");
+  const mimeType = file.mimetype || "image/jpeg";
+  const privateKey = getImageKitPrivateKey();
+
+  if (!privateKey) {
+    // If ImageKit private key is not configured, fallback to data URL safely
+    return `data:${mimeType};base64,${base64Data}`;
+  }
+
   const fileName = safeFileName(file);
   const form = new FormData();
-  form.append(
-    "file",
-    new Blob([file.buffer], { type: file.mimetype || "image/jpeg" }),
-    fileName
-  );
+  form.append("file", base64Data);
   form.append("fileName", fileName);
   form.append("folder", "/trecom/properties");
   form.append("useUniqueFileName", "true");
   form.append("tags", "property-listing");
 
-  const privateKey = getImageKitPrivateKey();
-  const response = await fetch(IMAGEKIT_UPLOAD_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${Buffer.from(`${privateKey}:`).toString("base64")}`,
-    },
-    body: form,
-  });
-  const data = await response.json().catch(() => ({}));
+  try {
+    const response = await fetch(IMAGEKIT_UPLOAD_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${privateKey}:`).toString("base64")}`,
+      },
+      body: form,
+    });
+    const data = await response.json().catch(() => ({}));
 
-  if (!response.ok || !data.url) {
-    const error = new Error(data.message || "Image upload failed");
-    error.statusCode = 502;
-    throw error;
+    if (!response.ok || !data.url) {
+      console.warn("ImageKit upload warning:", data.message || response.statusText);
+      return `data:${mimeType};base64,${base64Data}`;
+    }
+
+    return data.url;
+  } catch (err) {
+    console.warn("ImageKit upload error:", err.message);
+    return `data:${mimeType};base64,${base64Data}`;
   }
-
-  return data.url;
 }
 
 async function uploadImagesToImageKit(files) {

@@ -18,27 +18,24 @@ const projectRoutes = require("./routes/projectRoutes");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+connectDB().catch((error) => {
+  console.error("MongoDB connection failed:", error.message);
+  process.exit(1);
+});
+
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
   })
 );
-const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:3000,https://trecom.ai,https://www.trecom.ai")
-  .split(",")
-  .map((origin) => origin.trim())
-  .filter(Boolean);
-
 app.use(
   cors({
-    origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-      return callback(new Error("Origin not allowed by CORS"));
-    },
+    origin: true,
     credentials: true,
   })
 );
-app.use(express.json({ limit: "12mb" }));
-app.use(express.urlencoded({ extended: true, limit: "12mb" }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 app.use((req, res, next) => {
   res.on("finish", () => {
@@ -86,15 +83,8 @@ app.use("/api/projects", projectRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-connectDB()
-  .then(() => {
-    app.listen(PORT, "0.0.0.0", () => {
-      console.log(`TRECOM API running on http://localhost:${PORT}`);
-    });
-  })
-  .catch((error) => {
-    console.error("MongoDB connection failed:", error.message);
-    process.exit(1);
-  });
+app.listen(PORT, () => {
+  console.log(`TRECOM API running on http://localhost:${PORT}`);
+});
 
 module.exports = app;
