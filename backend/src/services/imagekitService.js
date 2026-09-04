@@ -24,25 +24,25 @@ async function uploadImage(file) {
   const privateKey = getImageKitPrivateKey();
 
   if (!privateKey) {
-    // If ImageKit private key is not configured, fallback to data URL safely
     return `data:${mimeType};base64,${base64Data}`;
   }
 
   const fileName = safeFileName(file);
-  const form = new FormData();
-  form.append("file", base64Data);
-  form.append("fileName", fileName);
-  form.append("folder", "/trecom/properties");
-  form.append("useUniqueFileName", "true");
-  form.append("tags", "property-listing");
+  const params = new URLSearchParams();
+  params.append("file", base64Data);
+  params.append("fileName", fileName);
+  params.append("folder", "/trecom/properties");
+  params.append("useUniqueFileName", "true");
+  params.append("tags", "property-listing");
 
   try {
     const response = await fetch(IMAGEKIT_UPLOAD_URL, {
       method: "POST",
       headers: {
         Authorization: `Basic ${Buffer.from(`${privateKey}:`).toString("base64")}`,
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: form,
+      body: params.toString(),
     });
     const data = await response.json().catch(() => ({}));
 

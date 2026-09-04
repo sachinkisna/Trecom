@@ -1,6 +1,6 @@
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ||
-  "http://localhost:5000/api";
+  "https://trecom-production.up.railway.app/api";
 
 export function getApiOrigin() {
   return API_BASE.replace(/\/api$/, "");

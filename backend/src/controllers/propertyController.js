@@ -59,8 +59,8 @@ function formatProperty(property, req) {
 async function resolveOwner(req) {
   if (req.user) return req.user;
 
-  const name = String(req.body.contactName || req.body.name || "").trim();
-  const phone = String(req.body.contactPhone || req.body.phone || "").trim();
+  const name = String(req.body.contactName || req.body.name || "Property Owner").trim();
+  const phone = String(req.body.contactPhone || req.body.phone || "9999999999").trim();
   const emailRaw = String(req.body.email || "").trim().toLowerCase();
 
   if (!name || !phone) {
